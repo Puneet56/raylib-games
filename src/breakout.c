@@ -3,6 +3,23 @@
 
 #include "raylib.h"
 
+// Element	Color Name	Hex Code
+// Background	Deep Space Blue	#0d1b2a
+// Paddle	Neon Green	#39ff14
+// Ball	Bright Yellow	#ffdd00
+// Bricks (Row 1)	Bright Red	#ff4500
+// Bricks (Row 2)	Bright Orange	#ffa500
+// Bricks (Row 3)	Lemon Yellow	#ffff66
+// Special Effects	Neon Pink	#ff007f
+// Bonus Points	Gold	#ffd700
+
+Color BACKGROUND = {0x0d, 0x1b, 0x2a, 255};
+Color PADDLE = {0x39, 0xff, 0x14, 255};
+Color BALL = {0xff, 0xdd, 0x00, 255};
+Color BRICKS = {0xff, 0x45, 0x00, 255};
+Color SPECIAL = {0xff, 0x00, 0x7f, 255};
+Color BONUS = {0xff, 0xd7, 0x00, 255};
+
 typedef struct Ball {
   Vector2 pos;
   int r;
@@ -12,7 +29,7 @@ typedef struct Ball {
 typedef struct Paddle {
   Vector2 size;
   Vector2 pos;
-  Vector2 v;
+  Vector2 vel;
 } Paddle;
 
 typedef struct Game {
@@ -25,7 +42,10 @@ int main() {
   InitWindow(width, height, "Hello raylib");
   SetTargetFPS(60);
 
-  Game game = {false};
+  Game game = {
+      .game_over = false,
+  };
+
   Ball ball = {
       .pos = (Vector2){100, 100},
       .r = 20,
@@ -34,10 +54,8 @@ int main() {
   Paddle paddle = {
       .pos = (Vector2){width / 2, height - 10},
       .size = {150, 10},
-      .v = 10,
+      .vel = 10,
   };
-
-  Color background = {80, 80, 80, 255};
 
   while (!WindowShouldClose()) {
     BeginDrawing();
@@ -49,7 +67,7 @@ int main() {
         ball.pos.y = 100;
       }
     } else {
-      ClearBackground(background);
+      ClearBackground(BACKGROUND);
       if (ball.pos.x > width - ball.r || ball.pos.x < ball.r) {
         ball.speed.x *= -1;
       }
@@ -72,17 +90,17 @@ int main() {
 
       ball.pos.x += ball.speed.x;
       ball.pos.y += ball.speed.y;
-      DrawCircle(ball.pos.x, ball.pos.y, ball.r, YELLOW);
+      DrawCircle(ball.pos.x, ball.pos.y, ball.r, BALL);
 
       DrawRectangle(paddle.pos.x, paddle.pos.y, paddle.size.x, paddle.size.y,
-                    WHITE);
+                    PADDLE);
 
       if (IsKeyDown(KEY_L) && paddle.pos.x < width - paddle.size.x) {
-        paddle.pos.x += paddle.v.x;
+        paddle.pos.x += paddle.vel.x;
       }
 
       if (IsKeyDown(KEY_H) && paddle.pos.x > 0) {
-        paddle.pos.x -= paddle.v.x;
+        paddle.pos.x -= paddle.vel.x;
       }
     }
     EndDrawing();
