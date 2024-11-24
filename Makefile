@@ -1,5 +1,3 @@
-# Makefile for Raylib project on macOS M1 with pkg-config
-
 # Compiler
 CC = clang
 
@@ -7,28 +5,44 @@ CC = clang
 CFLAGS = $(shell pkg-config --cflags raylib)
 LDFLAGS = $(shell pkg-config --libs raylib)
 
-# Source files
-SRCS = main.c
+# Source directory and target directory
+SRC_DIR = src
+BUILD_DIR = build
 
-# Output executable
-TARGET = raylib_app
+# Find all source files and extract project names
+SRCS := $(wildcard $(SRC_DIR)/*.c)
+PROJECTS := $(notdir $(basename $(SRCS)))
 
-# Default target: build and run
-all: $(TARGET)
+# Output executables
+TARGETS := $(addprefix $(BUILD_DIR)/, $(PROJECTS))
 
-# Build the executable
-$(TARGET): $(SRCS)
-	$(CC) $(CFLAGS) $(SRCS) $(LDFLAGS) -o $(TARGET)
+# Default target: build all projects
+all: $(TARGETS)
 
-# Run the application
-run: $(TARGET)
-	./$(TARGET)
+# Compile each project
+$(BUILD_DIR)/%: $(SRC_DIR)/%.c
+	@mkdir -p $(BUILD_DIR)
+	$(CC) $(CFLAGS) $< $(LDFLAGS) -o $@
+	@echo "Built $@"
+
+# Build and run a specific project
+run: $(BUILD_DIR)/$(PROJECT)
+	./$(BUILD_DIR)/$(PROJECT)
 
 # Clean up
 clean:
-	rm -f $(TARGET)
+	rm -rf $(BUILD_DIR)
 
-# Rebuild the project
+# Rebuild all projects
 rebuild: clean all
 
-.PHONY: all run clean rebuild
+# Help message
+help:
+	@echo "Usage:"
+	@echo "  make               - Build all projects"
+	@echo "  make PROJECT=name  - Build and run a specific project in src/"
+	@echo "  make run PROJECT=name - Run a specific project after building"
+	@echo "  make clean         - Remove all built files"
+	@echo "  make rebuild       - Clean and rebuild all projects"
+
+.PHONY: all run clean rebuild help
