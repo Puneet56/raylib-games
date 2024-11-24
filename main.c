@@ -3,68 +3,86 @@
 
 #include "raylib.h"
 
+typedef struct Ball {
+  Vector2 pos;
+  int r;
+  Vector2 speed;
+} Ball;
+
+typedef struct Paddle {
+  Vector2 size;
+  Vector2 pos;
+  Vector2 v;
+} Paddle;
+
+typedef struct Game {
+  bool game_over;
+} Game;
+
 int height = 600;
 int width = 800;
 int main() {
   InitWindow(width, height, "Hello raylib");
   SetTargetFPS(60);
 
-  bool game_over = false;
-
-  Vector2 ballC = {100, 100};
-  int ballR = 20;
-  Vector2 ballS = {4, 4};
-
-  int paddleV = 10;
-  Rectangle paddle = {
-      .x = width / 2,
-      .height = 10,
-      .y = height - 10,
-      .width = 150,
+  Game game = {false};
+  Ball ball = {
+      .pos = (Vector2){100, 100},
+      .r = 20,
+      .speed = (Vector2){4, 4},
+  };
+  Paddle paddle = {
+      .pos = (Vector2){width / 2, height - 10},
+      .size = {150, 10},
+      .v = 10,
   };
 
   Color background = {80, 80, 80, 255};
 
   while (!WindowShouldClose()) {
     BeginDrawing();
-    if (game_over) {
+    if (game.game_over) {
       DrawText("Game over", 100, 100, 40, WHITE);
       if (IsKeyDown(KEY_R)) {
-        game_over = false;
-        ballC.x = 100;
-        ballC.y = 100;
+        game.game_over = false;
+        ball.pos.x = 100;
+        ball.pos.y = 100;
       }
     } else {
       ClearBackground(background);
-      if (ballC.x > width - ballR || ballC.x < ballR) {
-        ballS.x *= -1;
+      if (ball.pos.x > width - ball.r || ball.pos.x < ball.r) {
+        ball.speed.x *= -1;
       }
 
-      if (ballC.y < ballR || ballC.y > height - ballR) {
-        ballS.y *= -1;
+      if (ball.pos.y < ball.r || ball.pos.y > height - ball.r) {
+        ball.speed.y *= -1;
       }
 
-      if (ballC.y > height - ballR) {
-        game_over = true;
+      if (ball.pos.y > height - ball.r) {
+        game.game_over = true;
       }
 
-      if (CheckCollisionCircleRec(ballC, ballR, paddle)) {
-        ballS.y *= -1;
-        ballS.x = (ballC.x - paddle.x) / (paddle.width / 2) * 5;
+      if (CheckCollisionCircleRec(ball.pos, ball.r,
+                                  (Rectangle){paddle.pos.x, paddle.pos.y,
+                                              paddle.size.x, paddle.size.y})) {
+        ball.speed.y *= -1;
+        ball.speed.x = (ball.pos.x - paddle.pos.x - paddle.size.x / 2) /
+                       (paddle.size.x / 2) * 10;
       }
 
-      ballC.x += ballS.x;
-      ballC.y += ballS.y;
-      DrawCircle(ballC.x, ballC.y, ballR, YELLOW);
+      ball.pos.x += ball.speed.x;
+      ball.pos.y += ball.speed.y;
+      DrawCircle(ball.pos.x, ball.pos.y, ball.r, YELLOW);
 
-      DrawRectangle(paddle.x, paddle.y, paddle.width, paddle.height, WHITE);
+      DrawRectangle(paddle.pos.x, paddle.pos.y, paddle.size.x, paddle.size.y,
+                    WHITE);
 
-      if (IsKeyDown(KEY_L) && paddle.x < width - paddle.width) {
-        paddle.x += paddleV;
+      if (IsKeyDown(KEY_L) && paddle.pos.x < width - paddle.size.x) {
+        paddle.pos.x += paddle.v.x;
       }
 
-      if (IsKeyDown(KEY_H) && paddle.x > 0) {
-        paddle.x -= paddleV;
+      if (IsKeyDown(KEY_H) && paddle.pos.x > 0) {
+        paddle.pos.x -= paddle.v.x;
       }
     }
     EndDrawing();
